@@ -115,8 +115,17 @@
       var value = document.getElementById("source_type").value;
       if (value === "financial") {
         document.getElementById("source").value = "yahoo";
+      } else if(value === "series") {
+        document.getElementById("source").disabled = true;
+        document.getElementById("contract").disabled = true;
+        document.getElementById("start_date").disabled = true;
+        document.getElementById("end_date").disabled = true;
       } else {
         document.getElementById("source").value = "";
+        document.getElementById("source").disabled = false;
+        document.getElementById("contract").disabled = false;
+        document.getElementById("start_date").disabled = false;
+        document.getElementById("end_date").disabled = false;
       }
     }
 
