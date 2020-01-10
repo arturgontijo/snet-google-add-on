@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link href="https://ssl.gstatic.com/docs/script/css/add-ons.css" rel="stylesheet"> 
+  </head>
+  
+  <body>
+  
+  <div class="sidebar">
+  
+  <!--
+  TimeSeriesForecast Inputs:
+  - window_len: 14.
+  - word_len: 7.
+  - alphabet_size: 5.
+  - source_type: "csv".
+  - source: "http://54.203.198.53:7000/TimeSeriesAnalysis/cntk-lstm-forecast/cntk_iot_solar.csv".
+  - contract: "".
+  - start_date: "".
+  - end_date: "". 
+  -->
+  <div class="block form-group">
+    <select id="source_type" onchange="checkSource()">
+      <option value="">Source Type</option>
+      <option value="series">Selection</option>
+      <option value="csv">csv</option>
+      <option value="financial">financial</option>
+    </select>
+    <br>
+    <br>
+    <label><strong>Source: </strong></label>
+    <input type="text" id="source" placeholder="CSV or ServerName" />
+    <label><strong>Contract: </strong></label>
+    <input type="text" id="contract" placeholder="eg. SPY" />
+    <label><strong>Start Date: </strong></label>
+    <input type="text" id="start_date" placeholder="eg. 2019-01-01" />
+    <label><strong>End Date: </strong></label>
+    <input type="text" id="end_date" placeholder="eg. 2019-12-31" />
+    <br>
+    <label><strong>Window: </strong></label>
+    <input type="number" min=1 id="window_len" placeholder="Length" />
+    <label><strong>Word: </strong></label>
+    <input type="number" min=1 id="word_len" placeholder="Length" />
+    <label><strong>Alphabet: </strong></label>
+    <input type="number" min=1 id="alphabet_size" placeholder="Size" />
+  </div>
+  <br>
+  <div>
+    <button class="blue" id="call_service">Call Service</button>
+  </div>
+  
+  <br>
+    <label><strong>Status: </strong></label><div id='status'></div>
+  <br>
+  
+  <label><strong>Last SAX Word: </strong></label>
+  <div id='last_sax_word'>.</div>
+  <label><strong>Forecast SAX Letter: </strong></label>
+  <div id='forecast_sax_letter'>.</div>
+  <label><strong>Position in SAX Interval: </strong></label>
+  <div id='position_in_sax_interval'>.</div>
+  <label><strong>Series Length: </strong></label>
+  <div id='series'>.</div>
+  <label><strong>Words Length: </strong></label>
+  <div id='words'>.</div>
+  
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+
+  <script>
+    //    REQUIRES SSL (HTTPS)
+    function load_data(url, payload) {
+        document.getElementById("status").innerHTML = "Processing, please wait...";
+        document.getElementById("last_sax_word").innerHTML = ".";
+        document.getElementById("forecast_sax_letter").innerHTML = ".";
+        document.getElementById("position_in_sax_interval").innerHTML = ".";
+        document.getElementById("series").innerHTML = ".";
+        document.getElementById("words").innerHTML = ".";
+        
+        $.ajax({
+            url: url,
+            type: 'POST',
+            crossDomain: true,
+            dataType : "json",
+            contentType: "application/json",
+            data: JSON.stringify(payload),
+            success: function(response) {
+                console.log("response:" + response);
+                document.getElementById("last_sax_word").innerHTML = response.last_sax_word;
+                document.getElementById("forecast_sax_letter").innerHTML = response.forecast_sax_letter;
+                document.getElementById("position_in_sax_interval").innerHTML = response.position_in_sax_interval;
+                document.getElementById("series").innerHTML = response.series.length;
+                document.getElementById("words").innerHTML = response.words.length;
+                document.getElementById("status").innerHTML = "Saving Data...";
+                google.script.run.WriteColumns(response.series, response.words);
+                document.getElementById("status").innerHTML = "Done!";
+                return response;
+            },
+            error: function(error){
+                console.log("Error! " + error);
+                document.getElementById("status").innerHTML = "Fail!";
+                document.getElementById("last_sax_word").innerHTML = ".";
+                document.getElementById("forecast_sax_letter").innerHTML = ".";
+                document.getElementById("position_in_sax_interval").innerHTML = ".";
+                document.getElementById("series").innerHTML = ".";
+                document.getElementById("words").innerHTML = ".";
+                return undefined;
+            }
+        });
+    };
+    
+    function checkSource() {
+      var value = document.getElementById("source_type").value;
+      if (value === "financial") {
+        document.getElementById("source").value = "yahoo";
+      } else {
+        document.getElementById("source").value = "";
+      }
+    }
+
+    $('#call_service').click(function() {
+        var url = 'https://bh.singularitynet.io:7059/Forecast/forecast';
+        var window_len = document.getElementById("window_len").value;
+        var word_len = document.getElementById("word_len").value;
+        var alphabet_size = document.getElementById("alphabet_size").value;
+        var source_type = document.getElementById("source_type").value;
+        var source = document.getElementById("source").value;
+        var contract = document.getElementById("contract").value;
+        var start_date = document.getElementById("start_date").value;
+        var end_date = document.getElementById("end_date").value;
+        var data = undefined;
+        
+        if(source_type === "") {
+          return;
+        }
+        if (source_type === "series") {
+          google.script.run.withSuccessHandler(function(data){
+            var payload = {
+              "window_len" : window_len,
+              "word_len" : word_len,
+              "alphabet_size" : alphabet_size,
+              "source_type" : source_type,
+              "data": data
+            };
+            var response = load_data(url, payload);
+          }).getSelection();
+          return;
+        }        
+
+        var payload = {
+          "window_len" : window_len,
+          "word_len" : word_len,
+          "alphabet_size" : alphabet_size,
+          "source_type" : source_type,
+          "source" : source,
+          "data": data,
+          "contract" : contract,
+          "start_date" : start_date,
+          "end_date" : end_date
+        };
+
+        var response = load_data(url, payload);
+    });
+
+    $('#window_len').keyup(function(e) {
+        if (e.keyCode === 13) {
+            $('#call_service').click();
+        }
+    });
+  </script>
+  
+  </body>
+</html>
