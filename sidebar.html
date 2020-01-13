@@ -72,50 +72,58 @@
   <script>
     //    REQUIRES SSL (HTTPS)
     function load_data(url, payload) {
-        document.getElementById("status").innerHTML = "Processing, please wait...";
-        document.getElementById("last_sax_word").innerHTML = ".";
-        document.getElementById("forecast_sax_letter").innerHTML = ".";
-        document.getElementById("position_in_sax_interval").innerHTML = ".";
-        document.getElementById("series").innerHTML = ".";
-        document.getElementById("words").innerHTML = ".";
-        
-        $.ajax({
-            url: url,
-            type: 'POST',
-            crossDomain: true,
-            dataType : "json",
-            contentType: "application/json",
-            data: JSON.stringify(payload),
-            success: function(response) {
-                console.log("response:" + response);
-                document.getElementById("last_sax_word").innerHTML = response.last_sax_word;
-                document.getElementById("forecast_sax_letter").innerHTML = response.forecast_sax_letter;
-                document.getElementById("position_in_sax_interval").innerHTML = response.position_in_sax_interval;
-                document.getElementById("series").innerHTML = response.series.length;
-                document.getElementById("words").innerHTML = response.words.length;
-                document.getElementById("status").innerHTML = "Saving Data...";
-                google.script.run.WriteColumns(response.series, response.words);
-                document.getElementById("status").innerHTML = "Done!";
-                return response;
-            },
-            error: function(error){
-                console.log("Error! " + error);
-                document.getElementById("status").innerHTML = "Fail!";
-                document.getElementById("last_sax_word").innerHTML = ".";
-                document.getElementById("forecast_sax_letter").innerHTML = ".";
-                document.getElementById("position_in_sax_interval").innerHTML = ".";
-                document.getElementById("series").innerHTML = ".";
-                document.getElementById("words").innerHTML = ".";
-                return undefined;
-            }
-        });
+      document.getElementById("call_service").disabled = true;
+      document.getElementById("status").innerHTML = "Processing, please wait...";
+      document.getElementById("last_sax_word").innerHTML = ".";
+      document.getElementById("forecast_sax_letter").innerHTML = ".";
+      document.getElementById("position_in_sax_interval").innerHTML = ".";
+      document.getElementById("series").innerHTML = ".";
+      document.getElementById("words").innerHTML = ".";
+      
+      $.ajax({
+          url: url,
+          type: 'POST',
+          crossDomain: true,
+          dataType : "json",
+          contentType: "application/json",
+          data: JSON.stringify(payload),
+          success: function(response) {
+              console.log("response:" + response);
+              document.getElementById("last_sax_word").innerHTML = response.last_sax_word;
+              document.getElementById("forecast_sax_letter").innerHTML = response.forecast_sax_letter;
+              document.getElementById("position_in_sax_interval").innerHTML = response.position_in_sax_interval;
+              document.getElementById("series").innerHTML = response.series.length;
+              document.getElementById("words").innerHTML = response.words.length;
+              document.getElementById("status").innerHTML = "Saving Data...";
+              google.script.run.WriteColumns(response.series, response.words, response.forecast_sax_letter);
+              document.getElementById("status").innerHTML = "Done!";
+              document.getElementById("call_service").disabled = false;
+              return response;
+          },
+          error: function(error){
+              console.log("Error! " + error);
+              document.getElementById("status").innerHTML = "Fail!";
+              document.getElementById("last_sax_word").innerHTML = ".";
+              document.getElementById("forecast_sax_letter").innerHTML = ".";
+              document.getElementById("position_in_sax_interval").innerHTML = ".";
+              document.getElementById("series").innerHTML = ".";
+              document.getElementById("words").innerHTML = ".";
+              document.getElementById("call_service").disabled = false;
+              return undefined;
+          }
+      });
     };
     
     function checkSource() {
       var value = document.getElementById("source_type").value;
       if (value === "financial") {
         document.getElementById("source").value = "yahoo";
+        document.getElementById("source").disabled = false;
+        document.getElementById("contract").disabled = false;
+        document.getElementById("start_date").disabled = false;
+        document.getElementById("end_date").disabled = false;
       } else if(value === "series") {
+        document.getElementById("source").value = "";
         document.getElementById("source").disabled = true;
         document.getElementById("contract").disabled = true;
         document.getElementById("start_date").disabled = true;
@@ -140,6 +148,10 @@
         var start_date = document.getElementById("start_date").value;
         var end_date = document.getElementById("end_date").value;
         var data = undefined;
+
+        if (window_len < 1 || word_len < 1 || alphabet_size < 1) {
+          return;
+        }
         
         if(source_type === "") {
           return;

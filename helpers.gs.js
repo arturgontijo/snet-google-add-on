@@ -19,7 +19,7 @@ function showSidebar() {
   SpreadsheetApp.getUi().showSidebar(html);
 };
 
-function WriteColumns(data, words){
+function WriteColumns(data, words, next_letter){
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var resultsheet = spreadsheet.getSheetByName("Result");
   if (resultsheet != null) {
@@ -31,12 +31,21 @@ function WriteColumns(data, words){
   resultsheet.getRange(1, 1).setValue("Close");
   resultsheet.getRange(1, 2).setValue("SAX Word");
   
-  for(i=0; i<data.length; i++){
+  for(var i=0; i<data.length; i++){
     resultsheet.getRange(i+2, 1).setValue(data[i]);
     if(i < words.length) {
       resultsheet.getRange(i+2, 2).setValue(words[i]);
     }
   }
+
+  var range = resultsheet.getRange("A1:A")
+  var chart = resultsheet.newChart()
+      .addRange(range)
+      .setOption('title', 'Chart - Forecast: ' + next_letter)
+      .setPosition(3, 3, 0, 0)
+      .build();
+
+  resultsheet.insertChart(chart);
   
   return true;
 };
