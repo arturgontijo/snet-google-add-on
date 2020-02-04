@@ -8,77 +8,62 @@
   <body>
   
   <div class="sidebar">
-  
-  <!--
-  TimeSeriesForecast Inputs:
-  - window_len: 14.
-  - word_len: 7.
-  - alphabet_size: 5.
-  - source_type: "csv".
-  - source: "http://54.203.198.53:7000/TimeSeriesAnalysis/cntk-lstm-forecast/cntk_iot_solar.csv".
-  - contract: "".
-  - start_date: "".
-  - end_date: "". 
-  -->
-  <div class="block form-group">
-    <select id="source_type" onchange="checkSource()">
-      <option value="">Source Type</option>
-      <option value="series">Selected Cells</option>
-      <option value="csv">csv</option>
-      <option value="financial">financial</option>
-    </select>
+    <div class="block form-group">
+      <br>
+      <div>
+        <select id="source_type" onchange="checkSource()">
+          <option value="series" selected>Selected Cells</option>
+          <option value="financial">Yahoo! Finance</option>
+        </select>
+      </div>
+      <br>
+      <div>
+        <label><strong>Ticker: </strong></label>
+        <input type="text" id="ticker" placeholder="eg. SPY" disabled />
+      </div>
+      <div>
+        <label><strong>Period: </strong></label>
+        <input type="number" min=1 id="period" placeholder="Period" />
+      </div>
+      <div>
+        <label><strong>Points (Forecast): </strong></label>
+        <input type="number" min=1 max=1000 id="points" placeholder="365" />
+      </div>
+    </div>
     <br>
+    <div>
+      <button class="blue" id="call_service">Call Service</button>
+    </div>
+  
     <br>
-    <label><strong>Source: </strong></label>
-    <input type="text" id="source" placeholder="CSV or ServerName" />
-    <label><strong>Contract: </strong></label>
-    <input type="text" id="contract" placeholder="eg. SPY" />
-    <label><strong>Start Date: </strong></label>
-    <input type="text" id="start_date" placeholder="eg. 2019-01-01" />
-    <label><strong>End Date: </strong></label>
-    <input type="text" id="end_date" placeholder="eg. 2019-12-31" />
+      <label><strong>Status: </strong></label><div id='status'></div>
     <br>
-    <label><strong>Window: </strong></label>
-    <input type="number" min=1 id="window_len" placeholder="Length" />
-    <label><strong>Word: </strong></label>
-    <input type="number" min=1 id="word_len" placeholder="Length" />
-    <label><strong>Alphabet: </strong></label>
-    <input type="number" min=1 id="alphabet_size" placeholder="Size" />
-  </div>
-  <br>
-  <div>
-    <button class="blue" id="call_service">Call Service</button>
-  </div>
   
-  <br>
-    <label><strong>Status: </strong></label><div id='status'></div>
-  <br>
-  
-  <label><strong>Last SAX Word: </strong></label>
-  <div id='last_sax_word'>.</div>
-  <label><strong>Forecast SAX Letter: </strong></label>
-  <div id='forecast_sax_letter'>.</div>
-  <label><strong>Position in SAX Interval: </strong></label>
-  <div id='position_in_sax_interval'>.</div>
-  <label><strong>Series Length: </strong></label>
-  <div id='series'>.</div>
-  <label><strong>Words Length: </strong></label>
-  <div id='words'>.</div>
-  
+    <label><strong>Series Length: </strong></label>
+    <div id='series_len'>.</div>
+    <label><strong>Forecast Length: </strong></label>
+    <div id='forecast_len'>.</div>  
   </div>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 
   <script>
+    function checkSource() {
+      var value = document.getElementById("source_type").value;
+      if (value === "financial") {
+        document.getElementById("ticker").disabled = false;
+      } 
+      else {
+        document.getElementById("ticker").disabled = true;
+      }
+    }
+
     //    REQUIRES SSL (HTTPS)
     function load_data(url, payload) {
       document.getElementById("call_service").disabled = true;
       document.getElementById("status").innerHTML = "Processing, please wait...";
-      document.getElementById("last_sax_word").innerHTML = ".";
-      document.getElementById("forecast_sax_letter").innerHTML = ".";
-      document.getElementById("position_in_sax_interval").innerHTML = ".";
-      document.getElementById("series").innerHTML = ".";
-      document.getElementById("words").innerHTML = ".";
+      document.getElementById("series_len").innerHTML = ".";
+      document.getElementById("forecast_len").innerHTML = ".";
       
       $.ajax({
           url: url,
@@ -89,13 +74,13 @@
           data: JSON.stringify(payload),
           success: function(response) {
               console.log("response:" + response);
-              document.getElementById("last_sax_word").innerHTML = response.last_sax_word;
-              document.getElementById("forecast_sax_letter").innerHTML = response.forecast_sax_letter;
-              document.getElementById("position_in_sax_interval").innerHTML = response.position_in_sax_interval;
-              document.getElementById("series").innerHTML = response.series.length;
-              document.getElementById("words").innerHTML = response.words.length;
-              document.getElementById("status").innerHTML = "Saving Data...";
-              google.script.run.WriteColumns(response.series, response.words, response.forecast_sax_letter);
+              document.getElementById("series_len").innerHTML = response.observed.length;
+              document.getElementById("forecast_len").innerHTML = response.forecast.length;
+              document.getElementById("status").innerHTML = "Writing Data...";
+              if (payload["y"] === undefined) {
+                payload["y"] = response.observed
+              }
+              google.script.run.WriteColumns(payload["y"], response);
               document.getElementById("status").innerHTML = "Done!";
               document.getElementById("call_service").disabled = false;
               return response;
@@ -103,86 +88,37 @@
           error: function(error){
               console.log("Error! " + error);
               document.getElementById("status").innerHTML = "Fail!";
-              document.getElementById("last_sax_word").innerHTML = ".";
-              document.getElementById("forecast_sax_letter").innerHTML = ".";
-              document.getElementById("position_in_sax_interval").innerHTML = ".";
-              document.getElementById("series").innerHTML = ".";
-              document.getElementById("words").innerHTML = ".";
+              document.getElementById("series_len").innerHTML = ".";
+              document.getElementById("forecast_len").innerHTML = ".";
               document.getElementById("call_service").disabled = false;
               return undefined;
           }
       });
+      document.getElementById("call_service").disabled = false;
     };
-    
-    function checkSource() {
-      var value = document.getElementById("source_type").value;
-      if (value === "financial") {
-        document.getElementById("source").value = "yahoo";
-        document.getElementById("source").disabled = false;
-        document.getElementById("contract").disabled = false;
-        document.getElementById("start_date").disabled = false;
-        document.getElementById("end_date").disabled = false;
-      } else if(value === "series") {
-        document.getElementById("source").value = "";
-        document.getElementById("source").disabled = true;
-        document.getElementById("contract").disabled = true;
-        document.getElementById("start_date").disabled = true;
-        document.getElementById("end_date").disabled = true;
-      } else {
-        document.getElementById("source").value = "";
-        document.getElementById("source").disabled = false;
-        document.getElementById("contract").disabled = false;
-        document.getElementById("start_date").disabled = false;
-        document.getElementById("end_date").disabled = false;
-      }
-    }
 
     $('#call_service').click(function() {
-        var url = 'https://bh.singularitynet.io:7059/Forecast/forecast';
-        var window_len = document.getElementById("window_len").value;
-        var word_len = document.getElementById("word_len").value;
-        var alphabet_size = document.getElementById("alphabet_size").value;
-        var source_type = document.getElementById("source_type").value;
-        var source = document.getElementById("source").value;
-        var contract = document.getElementById("contract").value;
-        var start_date = document.getElementById("start_date").value;
-        var end_date = document.getElementById("end_date").value;
-        var data = undefined;
-
-        if (window_len < 1 || word_len < 1 || alphabet_size < 1) {
-          return;
-        }
-        
-        if(source_type === "") {
-          return;
-        }
-        if (source_type === "series") {
-          google.script.run.withSuccessHandler(function(data){
-            var payload = {
-              "window_len" : window_len,
-              "word_len" : word_len,
-              "alphabet_size" : alphabet_size,
-              "source_type" : source_type,
-              "data": data
-            };
-            var response = load_data(url, payload);
-          }).getSelection();
-          return;
-        }        
-
+      var value = document.getElementById("source_type").value;
+      if (value === "financial") {
         var payload = {
-          "window_len" : window_len,
-          "word_len" : word_len,
-          "alphabet_size" : alphabet_size,
-          "source_type" : source_type,
-          "source" : source,
-          "data": data,
-          "contract" : contract,
-          "start_date" : start_date,
-          "end_date" : end_date
+          "ds": [document.getElementById("ticker").value],
+          "period": document.getElementById("period").value,
+          "points": document.getElementById("points").value
         };
-
-        var response = load_data(url, payload);
+        var response = load_data('https://bh.singularitynet.io:7089/Forecast/forecast', payload);
+      }
+      else {
+        google.script.run.withSuccessHandler(function(selection){
+          var payload = {
+            "ds": selection[0],
+            "y": selection[1],
+            "period": document.getElementById("period").value,
+            "points": document.getElementById("points").value
+          };
+          var response = load_data('https://bh.singularitynet.io:7089/Forecast/forecast', payload);
+        }).getSelection();
+      }
+      return;  
     });
 
     $('#window_len').keyup(function(e) {
