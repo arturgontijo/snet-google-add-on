@@ -8,7 +8,6 @@ function onOpen() {
  var ui = SpreadsheetApp.getUi();
   ui.createMenu('SingularityNET')
     .addItem('TimeSeriesForecast', 'showSidebar')
-    .addItem('ExampleService', 'example')
     .addToUi(); 
 };
 
@@ -100,37 +99,7 @@ function WriteColumns(series, response){
                 )
       .build();
   
-//  var range_series = resultsheet.getRange("B1:B")
-//  var chart_series = resultsheet.newChart()
-//      .addRange(range_series)
-//      .setOption('title', 'Series')
-//      .setOption('width', 1000)
-//      .setOption('height', 420)
-//      .setPosition(22, 1, 0, 0)
-//      .build();
-//  
-//  var range_trend = resultsheet.getRange("C1:C")
-//  var chart_trend = resultsheet.newChart()
-//      .addRange(range_trend)
-//      .setOption('title', 'Trend')
-//      .setOption('width', 1000)
-//      .setOption('height', 420)
-//      .setPosition(42, 1, 0, 0)
-//      .build();
-//  
-//  var range_seasonal = resultsheet.getRange("D1:D")
-//  var chart_seasonal = resultsheet.newChart()
-//      .addRange(range_seasonal)
-//      .setOption('title', 'Seasonal')
-//      .setOption('width', 1000)
-//      .setOption('height', 420)
-//      .setPosition(62, 1, 0, 0)
-//      .build();
-  
   chartssheet.insertChart(chart_f_series);
-//  chartssheet.insertChart(chart_series);
-//  chartssheet.insertChart(chart_trend);
-//  chartssheet.insertChart(chart_seasonal);
   
   return true;
 };
@@ -138,10 +107,10 @@ function WriteColumns(series, response){
 function getSelection(){
   var spreadsheet = SpreadsheetApp.getActive();
   var selection = spreadsheet.getSelection();
-  if(selection) {
-    var data = [];
-    var values = [];
-    var ranges =  selection.getActiveRangeList().getRanges();
+  var data = [];
+  var values = [];
+  var ranges =  selection.getActiveRangeList().getRanges();
+  if(ranges.length == 2){
     for (var i = 0; i < ranges.length; i++) {
       values = ranges[i].getValues();
       // Removing header
@@ -151,32 +120,9 @@ function getSelection(){
     for (var i = 0; i < data[0].length; i++) {
       data[0][i] = Utilities.formatDate(new Date(data[0][i]), "GMT", "yyyy-MM-dd")
     }
-    return data;
-  } else {
-    return [];
+    if(data.length == 2 && data[0].length > 0 && data[1].length > 0) {
+      return data;
+    }
   }
+  return;
 };
-
-// =======================================================================================
-// Testing different methods:
-function _post(data){
-  var options = {
-    'method' : 'post',
-    'contentType': 'application/json',
-    'payload' : JSON.stringify(data)
-  };
-  var response = UrlFetchApp.fetch('http://bh2.singularitynet.io:7079/post', options);
-  var result = JSON.parse(response.getContentText());
-  return result;
-};
-
-function doGet(e) { return ContentService.createTextOutput("Testing...") };
-
-function doPost(e) { return ContentService.createTextOutput("Testing...") };
-
-function example(){
-  var spreadsheet = SpreadsheetApp.getActive();
-  var n = spreadsheet.getActiveCell().getValue();
-  spreadsheet.getActiveCell().setValue(n * n);
-};
-// =======================================================================================
