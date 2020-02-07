@@ -11,6 +11,23 @@ function onOpen() {
     .addToUi(); 
 };
 
+function selectRange(A1Notation) {
+  try {
+    var ss = SpreadsheetApp.getActive();
+    var sh = ss.getActiveSheet();
+    sh.setActiveRange(ss.getRange(A1Notation))
+  } catch (e) {
+    return;
+  }
+}
+
+function getSelRange() {
+  var ss = preadsheetApp.getActive();
+  var sh = ss.getActiveSheet();
+  var rg = sh.getActiveRange();
+  return rg.getA1Notation();
+}
+
 function showSidebar() {
   var html = HtmlService.createTemplateFromFile("sidebar")
     .evaluate()
@@ -19,22 +36,6 @@ function showSidebar() {
 };
 
 function WriteColumns(series, response){
-  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var resultsheet = spreadsheet.getSheetByName("Result");
-  if (resultsheet != null) {
-    spreadsheet.deleteSheet(resultsheet);
-  }
-  resultsheet = spreadsheet.insertSheet();
-  resultsheet.setName("Result");
-  resultsheet.appendRow([ "Date", "Series", "Trend", "Seasonal", "Forecast", "Lower", "Upper"])
-  
-  var chartssheet = spreadsheet.getSheetByName("Charts");
-  if (chartssheet != null) {
-    spreadsheet.deleteSheet(chartssheet);
-  }
-  chartssheet = spreadsheet.insertSheet();
-  chartssheet.setName("Charts");
-
   // STL
   var trend = response.trend;
   var seasonal = response.seasonal;
@@ -43,6 +44,11 @@ function WriteColumns(series, response){
   var forecast = response.forecast;
   var forecast_lower = response.forecast_lower;
   var forecast_upper = response.forecast_upper;
+
+  // Checking if any data was sent back
+  if(forecast === undefined || forecast.length < series.length){
+    return false;
+  }
   
   var r = [];
   for(var i=0; i < series.length; i++){
@@ -66,6 +72,24 @@ function WriteColumns(series, response){
             forecast_upper[i]
            ])
   }
+
+  // Wrinting new SS, Result and Chart
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var resultsheet = spreadsheet.getSheetByName("Result");
+  if (resultsheet != null) {
+    spreadsheet.deleteSheet(resultsheet);
+  }
+  resultsheet = spreadsheet.insertSheet();
+  resultsheet.setName("Result");
+  resultsheet.appendRow([ "Date", "Series", "Trend", "Seasonal", "Forecast", "Lower", "Upper"])
+  
+  var chartssheet = spreadsheet.getSheetByName("Chart");
+  if (chartssheet != null) {
+    spreadsheet.deleteSheet(chartssheet);
+  }
+  chartssheet = spreadsheet.insertSheet();
+  chartssheet.setName("Chart");
+
   var range = resultsheet.getRange(2, 1, forecast.length, 7);
   range.setValues(r);
 
@@ -104,25 +128,55 @@ function WriteColumns(series, response){
   return true;
 };
 
-function getSelection(){
+function getSelection(A1Notation){
   var spreadsheet = SpreadsheetApp.getActive();
-  var selection = spreadsheet.getSelection();
-  var data = [];
-  var values = [];
-  var ranges =  selection.getActiveRangeList().getRanges();
-  if(ranges.length == 2){
-    for (var i = 0; i < ranges.length; i++) {
-      values = ranges[i].getValues();
-      // Removing header
-      values.shift();
-      data.push(values.join().split(',').filter(Boolean));
-    }
-    for (var i = 0; i < data[0].length; i++) {
-      data[0][i] = Utilities.formatDate(new Date(data[0][i]), "GMT", "yyyy-MM-dd")
-    }
-    if(data.length == 2 && data[0].length > 0 && data[1].length > 0) {
-      return data;
+
+  if(A1Notation){
+    try {
+      spreadsheet.setActiveRange(spreadsheet.getRange(A1Notation));
+    } catch (e) {
+      return {data: undefined, A1Notation: ""};
     }
   }
-  return;
+
+  var selection = spreadsheet.getSelection();
+  var data = [[], []];
+  var values = [];
+  var ranges = selection.getActiveRangeList().getRanges();
+  if(ranges.length === 1 && ranges[0].getNumColumns() === 2){
+    values = ranges[0].getValues();
+    var start_idx = 0;
+    // Removing header
+    if(typeof(values[0][1]) !== "number") start_idx = 1;
+    for (var i = start_idx; i < values.length; i++) {
+      if(values[i][0] === "" || values[i][1] === "") continue;
+      data[0].push(Utilities.formatDate(new Date(values[i][0]), "GMT", "yyyy-MM-dd"));
+      data[1].push(values[i][1]);
+    }
+    return {data: data, A1Notation: ranges[0].getA1Notation()};
+  }
+  if(ranges.length == 2){
+    if (ranges[0].getNumColumns() == 1 && ranges[1].getNumColumns() == 1){
+      data = [];
+      for (var i = 0; i < ranges.length; i++) {
+        values = ranges[i].getValues();
+        data.push(values.join().split(',').filter(Boolean));
+      }
+      // Removing header
+      if(typeof(data[1][0]) !== "number"){
+        data[0].shift();
+        data[1].shift();
+      }
+      var ret_data = [[], []];
+      for (var i = 0; i < data[0].length; i++) {
+        if(data[i][0] === "" || data[i][1] === "") continue;
+        ret_data[0].push(Utilities.formatDate(new Date(data[0][i]), "GMT", "yyyy-MM-dd"));
+        ret_data[1].push(data[i][1]);
+      }
+      if(ret_data.length == 2 && ret_data[0].length > 0 && ret_data[1].length > 0) {
+        return {data: ret_data, A1Notation: ranges[0].getA1Notation() + ";" + ranges[1].getA1Notation()};
+      }
+    }
+  }
+  return {data: undefined, A1Notation: ""};
 };
