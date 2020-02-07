@@ -35,12 +35,11 @@ function showSidebar() {
   SpreadsheetApp.getUi().showSidebar(html);
 };
 
-function WriteColumns(series, response){
+function WriteColumns(ds, series, response){
   // STL
   var trend = response.trend;
   var seasonal = response.seasonal;
   // Prophet
-  var forecast_ds = response.forecast_ds;
   var forecast = response.forecast;
   var forecast_lower = response.forecast_lower;
   var forecast_upper = response.forecast_upper;
@@ -52,7 +51,7 @@ function WriteColumns(series, response){
   
   var r = [];
   for(var i=0; i < series.length; i++){
-    r.push([forecast_ds[i],
+    r.push([ds[i],
             series[i],
             trend[i],
             seasonal[i],
@@ -63,7 +62,7 @@ function WriteColumns(series, response){
   }
   // Adding the Forecast Points
   for(var i=series.length; i < forecast.length; i++){
-    r.push([forecast_ds[i],
+    r.push(["",
             "",
             "",
             "",
@@ -145,15 +144,19 @@ function getSelection(A1Notation){
   var ranges = selection.getActiveRangeList().getRanges();
   if(ranges.length === 1 && ranges[0].getNumColumns() === 2){
     values = ranges[0].getValues();
-    var start_idx = 0;
-    // Removing header
-    if(typeof(values[0][1]) !== "number") start_idx = 1;
-    for (var i = start_idx; i < values.length; i++) {
+    // Removing Headers
+    if(values[0][0] === "ds" || values[0][0] === "Date" || values[0][0] === "date" ||
+       values[0][1] === "y" || values[0][1] === "Series" || values[0][1] === "series") values.shift();
+    for (var i = 0; i < values.length; i++) {
       if(values[i][0] === "" || values[i][1] === "") continue;
-      data[0].push(Utilities.formatDate(new Date(values[i][0]), "GMT", "yyyy-MM-dd"));
-      data[1].push(values[i][1]);
+      try {
+        data[0].push(Utilities.formatDate(new Date(values[i][0]), "GMT", "yyyy-MM-dd"));
+        data[1].push(values[i][1]);
+      } catch (e) { continue; }
     }
-    return {data: data, A1Notation: ranges[0].getA1Notation()};
+    if(data[0].length > 0 && data[1].length > 0 && data[0].length === data[1].length){
+      return {data: data, A1Notation: ranges[0].getA1Notation()};
+    }
   }
   if(ranges.length == 2){
     if (ranges[0].getNumColumns() == 1 && ranges[1].getNumColumns() == 1){
@@ -162,16 +165,15 @@ function getSelection(A1Notation){
         values = ranges[i].getValues();
         data.push(values.join().split(',').filter(Boolean));
       }
-      // Removing header
-      if(typeof(data[1][0]) !== "number"){
-        data[0].shift();
-        data[1].shift();
-      }
+      // Removing Headers
+      if(data[0][0] === "ds" || data[0][0] === "Date" || data[0][0] === "date") data[0].shift();
+      if(data[1][0] === "y" || data[1][0] === "Series" || data[1][0] === "series") data[1].shift();
       var ret_data = [[], []];
       for (var i = 0; i < data[0].length; i++) {
-        if(data[i][0] === "" || data[i][1] === "") continue;
-        ret_data[0].push(Utilities.formatDate(new Date(data[0][i]), "GMT", "yyyy-MM-dd"));
-        ret_data[1].push(data[i][1]);
+        try {
+          ret_data[0].push(Utilities.formatDate(new Date(data[0][i]), "GMT", "yyyy-MM-dd"));
+          ret_data[1].push(data[1][i]);
+        } catch (e) { continue; }
       }
       if(ret_data.length == 2 && ret_data[0].length > 0 && ret_data[1].length > 0) {
         return {data: ret_data, A1Notation: ranges[0].getA1Notation() + ";" + ranges[1].getA1Notation()};

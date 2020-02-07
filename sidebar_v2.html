@@ -19,7 +19,7 @@
         <div class="input-group mb-3 bg-white rounded shadow-sm">
           <input type="text" class="form-control" id="range_A1" value="" onchange="rangeA1OnChange(this.value)">
           <div class="input-group-append">
-            <a class="btn btn-secondary btn-sm py-0" id="reset_A1" href="#" role="button" style="font-size: 0.8em;">Reset</a>
+            <a class="btn btn-secondary btn-sm py-0" id="reset_A1" href="#" role="button" style="font-size: 0.9em;">Reset</a>
           </div>
         </div>
         <h6 class="border-bottom border-gray pb-2 mb-0">Period (STL)</h6>
@@ -63,12 +63,13 @@
               success: function(response) {
                   document.getElementById("status").innerHTML = "Writing Data...";
                   if (payload["y"] === undefined) { payload["y"] = response.observed }
+                  if (payload["ds"] === undefined) { payload["ds"] = response.forecast_ds }
                   google.script.run.withSuccessHandler(function(ok){
                     if(ok){
                       document.getElementById("status").innerHTML = "Done!";
                     } else document.getElementById("status").innerHTML = "Fail!";
                     document.getElementById("call_service").classList.remove('disabled');
-                  }).WriteColumns(payload["y"], response);
+                  }).WriteColumns(payload["ds"], payload["y"], response);
                   return response;
               },
               error: function(error){
@@ -96,7 +97,7 @@
                 var data = output.data;
                 var A1Notation = output.A1Notation;
                 if(data && data.length === 2){
-                  if(data[0].length == data[1].length && data[0].length <= 3000){
+                  if(data[0].length === data[1].length && data[0].length <= 3000){
                     var payload = {
                     "ds": data[0],
                     "y": data[1],
@@ -111,7 +112,7 @@
                     document.getElementById("call_service").classList.remove('disabled');
                   }
                 } else {
-                    document.getElementById("status").innerHTML = "Select 2 columns using CTRL, once at a time.";
+                    document.getElementById("status").innerHTML = "Select 2 columns (Date and Series).";
                     document.getElementById("call_service").classList.remove('disabled');
                 }
             }).getSelection(data_range);
