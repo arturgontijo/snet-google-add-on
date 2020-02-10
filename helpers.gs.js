@@ -11,29 +11,43 @@ function onOpen() {
     .addToUi(); 
 };
 
-function selectRange(A1Notation) {
-  try {
-    var ss = SpreadsheetApp.getActive();
-    var sh = ss.getActiveSheet();
-    sh.setActiveRange(ss.getRange(A1Notation))
-  } catch (e) {
-    return;
-  }
-}
-
-function getSelRange() {
-  var ss = preadsheetApp.getActive();
-  var sh = ss.getActiveSheet();
-  var rg = sh.getActiveRange();
-  return rg.getA1Notation();
-}
-
 function showSidebar() {
   var html = HtmlService.createTemplateFromFile("sidebar")
     .evaluate()
     .setTitle("SingularityNET - TimeSeriesForecast");
   SpreadsheetApp.getUi().showSidebar(html);
 };
+
+function selectRange(A1Notation) {
+  try {
+    var spreadsheet = SpreadsheetApp.getActive();
+    var sheet = spreadsheet.getActiveSheet();
+    var A1_list = A1Notation.split(";");
+    var tmp_list = [];
+    for(var i=0; i < A1_list.length; i++) {
+      if(A1_list[i]) { tmp_list.push(A1_list[i]); }
+    }
+    var rangeList = sheet.getRangeList(tmp_list);
+    sheet.setActiveRangeList(rangeList);
+  } catch (e) {
+    return;
+  }
+}
+
+function getSelRange() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  var selection = spreadsheet.getSelection();
+  var ranges = selection.getActiveRangeList().getRanges();
+  var ret = "";
+  if(ranges.length === 1) {
+   ret += ranges[0].getA1Notation();
+  } else if(ranges.length === 2) {
+    for (var i = 0; i < ranges.length; i++) {
+      ret += ranges[i].getA1Notation() + ";";
+    }
+  }
+  return ret;
+}
 
 function WriteColumns(ds, series, response){
   // STL
@@ -130,13 +144,8 @@ function WriteColumns(ds, series, response){
 function getSelection(A1Notation){
   var spreadsheet = SpreadsheetApp.getActive();
 
-  if(A1Notation){
-    try {
-      spreadsheet.setActiveRange(spreadsheet.getRange(A1Notation));
-    } catch (e) {
-      return {data: undefined, A1Notation: ""};
-    }
-  }
+  // Ensuring that the Selection is the same from "Data range" input.
+  selectRange(A1Notation);
 
   var selection = spreadsheet.getSelection();
   var data = [[], []];

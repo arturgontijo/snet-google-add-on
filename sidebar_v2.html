@@ -40,12 +40,23 @@
     </main>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-    <script>
-//        setInterval(() => {
-//          google.script.run.withSuccessHandler(function(r){
-//            document.getElementById("range_A1").value = r;
-//          }).getSelRange();
-//        }, 100);
+    <script>        
+        google.script.run.withSuccessHandler(function(r){
+            document.getElementById("range_A1").value = r;
+        }).getSelRange();
+        
+        $("#range_A1").hover(function() {
+          google.script.run.withSuccessHandler(function(r){
+            document.getElementById("range_A1").value = r;
+            last_range_A1 = r;
+          }).getSelRange();
+        });
+        $("#call_service").hover(function() {
+          google.script.run.withSuccessHandler(function(r){
+            document.getElementById("range_A1").value = r;
+            last_range_A1 = r;
+          }).getSelRange();
+        });
 
         // REQUIRES SSL (HTTPS)
         function load_data(url, payload) {
