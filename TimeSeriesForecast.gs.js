@@ -12,7 +12,7 @@ function onOpen() {
 };
 
 function showSidebar() {
-  var html = HtmlService.createTemplateFromFile("sidebar")
+  var html = HtmlService.createTemplateFromFile("Sidebar")
     .evaluate()
     .setTitle("SingularityNET - TimeSeriesForecast");
   SpreadsheetApp.getUi().showSidebar(html);
@@ -154,8 +154,7 @@ function getSelection(A1Notation){
   if(ranges.length === 1 && ranges[0].getNumColumns() === 2){
     values = ranges[0].getValues();
     // Removing Headers
-    if(values[0][0] === "ds" || values[0][0] === "Date" || values[0][0] === "date" ||
-       values[0][1] === "y" || values[0][1] === "Series" || values[0][1] === "series") values.shift();
+    values.shift();
     for (var i = 0; i < values.length; i++) {
       if(values[i][0] === "" || values[i][1] === "") continue;
       try {
@@ -175,8 +174,8 @@ function getSelection(A1Notation){
         data.push(values.join().split(',').filter(Boolean));
       }
       // Removing Headers
-      if(data[0][0] === "ds" || data[0][0] === "Date" || data[0][0] === "date") data[0].shift();
-      if(data[1][0] === "y" || data[1][0] === "Series" || data[1][0] === "series") data[1].shift();
+      data[0].shift();
+      data[1].shift();
       var ret_data = [[], []];
       for (var i = 0; i < data[0].length; i++) {
         try {
