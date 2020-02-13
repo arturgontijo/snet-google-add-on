@@ -110,7 +110,8 @@ function WriteColumns(ds, series, response){
   if (resultsheet != null) {
     spreadsheet.deleteSheet(resultsheet);
   }
-  resultsheet = spreadsheet.insertSheet();
+  var last_sheet = spreadsheet.getSheets().length;
+  resultsheet = spreadsheet.insertSheet(last_sheet);
   resultsheet.setName("Result");
   resultsheet.appendRow([ "Date", "Series", "Trend", "Seasonal", "Forecast", "Lower", "Upper"])
   
@@ -118,7 +119,8 @@ function WriteColumns(ds, series, response){
   if (chartssheet != null) {
     spreadsheet.deleteSheet(chartssheet);
   }
-  chartssheet = spreadsheet.insertSheet();
+  last_sheet = spreadsheet.getSheets().length;
+  chartssheet = spreadsheet.insertSheet(last_sheet);
   chartssheet.setName("Chart");
 
   var range = resultsheet.getRange(2, 1, forecast.length, 7);
@@ -161,46 +163,28 @@ function WriteColumns(ds, series, response){
 
 function getSelection(dates_A1, series_A1){
   // Ensuring that the Selection is the same from "Data range" input.
+  dates_A1="A:A";
+  series_A1="B:B";
   var ranges = getAndSetRanges(dates_A1, series_A1);
   var data = [[], []];
-  var values = [];
+  var dates_values = [];
+  var series_values = [];
+  // Dates Range
+  dates_values = ranges[0].getValues();
+  dates_values.shift();
+  // Series Range
+  series_values = ranges[1].getValues();
+  series_values.shift();
   
-  if(ranges.length === 1 && ranges[0].getNumColumns() === 2){
-    values = ranges[0].getValues();
-    // Removing Headers
-    values.shift();
-    for (var i = 0; i < values.length; i++) {
-      if(values[i][0] === "" || values[i][1] === "") continue;
+  if(dates_values && dates_values.length == series_values.length){
+    for (var i = 0; i < dates_values.length; i++) {
+      // Removing empty cells
+      if(dates_values[i][0] === "" || series_values[i][0] === "") continue;
       try {
-        data[0].push(Utilities.formatDate(new Date(values[i][0]), "GMT", "yyyy-MM-dd"));
-        data[1].push(values[i][1]);
+        data[0].push(Utilities.formatDate(new Date(dates_values[i][0]), "GMT", "yyyy-MM-dd"));
+        data[1].push(series_values[i][0]);
       } catch (e) { continue; }
     }
-    if(data[0].length > 0 && data[1].length > 0 && data[0].length === data[1].length){
-      return {data: data, A1Notation: ranges[0].getA1Notation()};
-    }
   }
-  if(ranges.length == 2){
-    if (ranges[0].getNumColumns() == 1 && ranges[1].getNumColumns() == 1){
-      data = [];
-      for (var i = 0; i < ranges.length; i++) {
-        values = ranges[i].getValues();
-        data.push(values.join().split(',').filter(Boolean));
-      }
-      // Removing Headers
-      data[0].shift();
-      data[1].shift();
-      var ret_data = [[], []];
-      for (var i = 0; i < data[0].length; i++) {
-        try {
-          ret_data[0].push(Utilities.formatDate(new Date(data[0][i]), "GMT", "yyyy-MM-dd"));
-          ret_data[1].push(data[1][i]);
-        } catch (e) { continue; }
-      }
-      if(ret_data.length == 2 && ret_data[0].length > 0 && ret_data[1].length > 0) {
-        return {data: ret_data, A1Notation: ranges[0].getA1Notation() + ";" + ranges[1].getA1Notation()};
-      }
-    }
-  }
-  return {data: undefined, A1Notation: ""};
+  return data;
 };

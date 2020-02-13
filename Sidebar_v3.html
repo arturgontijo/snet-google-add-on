@@ -86,8 +86,7 @@
             document.getElementById("status").innerHTML = "Processing...";
             let dates_range = document.getElementById("dates_A1").value;
             let series_range = document.getElementById("series_A1").value;
-            google.script.run.withSuccessHandler(function(output){
-                let data = output.data;
+            google.script.run.withSuccessHandler(function(data){
                 if(data && data.length === 2){
                   if(data[0].length === data[1].length && data[0].length <= 3000){
                     var payload = {
