@@ -163,8 +163,6 @@ function WriteColumns(ds, series, response){
 
 function getSelection(dates_A1, series_A1){
   // Ensuring that the Selection is the same from "Data range" input.
-  dates_A1="A:A";
-  series_A1="B:B";
   var ranges = getAndSetRanges(dates_A1, series_A1);
   var data = [[], []];
   var dates_values = [];
