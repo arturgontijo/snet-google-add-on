@@ -57,13 +57,15 @@ function getAndSetRanges(dates_A1, series_A1) {
 function getSelectedRangeA1() {
   var spreadsheet = SpreadsheetApp.getActive();
   var selection = spreadsheet.getSelection();
-  var ranges = selection.getActiveRangeList().getRanges();
   var A1_list = ["", ""];
-  if(0 < ranges.length <= 2) {
-    for (var i = 0; i < ranges.length; i++) {
-      A1_list[i] = ranges[i].getA1Notation();
+  try {
+    var ranges = selection.getActiveRangeList().getRanges();
+    if(0 < ranges.length <= 2) {
+      for (var i = 0; i < ranges.length; i++) {
+        A1_list[i] = ranges[i].getA1Notation();
+      }
     }
-  }
+  } catch (e) {};
   return A1_list;
 }
 
@@ -164,25 +166,29 @@ function WriteColumns(ds, series, response){
 function getSelection(dates_A1, series_A1){
   // Ensuring that the Selection is the same from "Data range" input.
   var ranges = getAndSetRanges(dates_A1, series_A1);
-  var data = [[], []];
+  var data = undefined;
   var dates_values = [];
   var series_values = [];
-  // Dates Range
-  dates_values = ranges[0].getValues();
-  dates_values.shift();
-  // Series Range
-  series_values = ranges[1].getValues();
-  series_values.shift();
-  
-  if(dates_values && dates_values.length == series_values.length){
-    for (var i = 0; i < dates_values.length; i++) {
-      // Removing empty cells
-      if(dates_values[i][0] === "" || series_values[i][0] === "") continue;
-      try {
-        data[0].push(Utilities.formatDate(new Date(dates_values[i][0]), "GMT", "yyyy-MM-dd"));
-        data[1].push(series_values[i][0]);
-      } catch (e) { continue; }
+  try {
+    // Dates Range
+    dates_values = ranges[0].getValues();
+    dates_values.shift();
+    // Series Range
+    series_values = ranges[1].getValues();
+    series_values.shift();
+    
+    if(dates_values && dates_values.length == series_values.length){
+      data = [[], []];
+      for (var i = 0; i < dates_values.length; i++) {
+        // Removing empty cells
+        if(dates_values[i][0] === "" || series_values[i][0] === "") continue;
+        try {
+          data[0].push(Utilities.formatDate(new Date(dates_values[i][0]), "GMT", "yyyy-MM-dd"));
+          data[1].push(series_values[i][0]);
+        } catch (e) { continue; }
+      }
     }
   }
+  catch (e) {};
   return data;
 };

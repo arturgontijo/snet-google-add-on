@@ -67,7 +67,6 @@
                   return response;
               },
               error: function(error){
-                  console.log("Error! " + error);
                   document.getElementById("status").innerHTML = "Fail!";
                   document.getElementById("call_service").classList.remove('disabled');
               }
@@ -102,6 +101,8 @@
                     document.getElementById("call_service").classList.remove('disabled');
                   }
                 } else {
+                    document.getElementById("dates_A1").value = "";
+                    document.getElementById("series_A1").value = "";
                     document.getElementById("status").innerHTML = "Select 2 columns (Date and Series).";
                     document.getElementById("call_service").classList.remove('disabled');
                 }
