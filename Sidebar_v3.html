@@ -87,7 +87,7 @@
             let series_range = document.getElementById("series_A1").value;
             google.script.run.withSuccessHandler(function(data){
                 if(data && data.length === 2){
-                  if(data[0].length === data[1].length && data[0].length <= 3000){
+                  if(data[0].length === data[1].length && data[0].length >= 100 && data[0].length <= 3000){
                     var payload = {
                     "ds": data[0],
                     "y": data[1],
@@ -97,7 +97,7 @@
                     let response = load_data('https://bh.singularitynet.io:7089/Forecast/forecast', payload);
                   }
                   else {
-                    document.getElementById("status").innerHTML = "Invalid length! Both must have same length (max 2000).";
+                    document.getElementById("status").innerHTML = "Invalid length! Both must have same length (between 100 and 3000).";
                     document.getElementById("call_service").classList.remove('disabled');
                   }
                 } else {
