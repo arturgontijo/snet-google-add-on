@@ -11,105 +11,218 @@
 
     <style scoped>
         @import url('https://getbootstrap.com/docs/4.4/dist/css/bootstrap.min.css');
+        @import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.0/dropzone.min.css');
     </style>
 
     <main role="main" class="container">
       <div class="my-3 p-3 bg-white rounded shadow-sm">
-        <h6 class="border-bottom border-gray pb-2 mb-0">Date Range</h6>
-        <div class="mb-3 bg-white rounded shadow-sm">
-          <input type="text" class="form-control" id="dates_A1" value="" onFocus="this.select();" onChange="rangeA1OnChange();">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active" id="service-tab" data-toggle="tab" href="#service" role="tab" aria-controls="service" aria-selected="true">
+              <i class="fa fa-line-chart"></i> Forecast
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab" aria-controls="settings" aria-selected="false">
+              <i class="fa fa-cog"></i> Setup
+            </a>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+
+          <div class="tab-pane fade show active" id="service" role="tabpanel" aria-labelledby="service-tab">
+            <br>
+            <h6 class="border-bottom border-gray pb-2 mb-0">Date Range</h6>
+            <div class="mb-3 bg-white rounded shadow-sm">
+              <input type="text" class="form-control" id="dates_A1" value="" onFocus="this.select();" onChange="rangeA1OnChange();">
+            </div>
+            <h6 class="border-bottom border-gray pb-2 mb-0">Series Range</h6>
+            <div class="mb-3 bg-white rounded shadow-sm">
+              <input type="text" class="form-control" id="series_A1" value="" onFocus="this.select();" onChange="rangeA1OnChange();">
+            </div>
+            <!-- <h6 class="border-bottom border-gray pb-2 mb-0">Period (STL)</h6>
+            <div class="mb-3 bg-white rounded shadow-sm">
+                <input type="number" min=5 max=300 class="form-control" id="period" value="5" onFocus="this.select();" >
+            </div> -->
+            <h6 class="border-bottom border-gray pb-2 mb-0">Points to Forecast</h6>
+            <div class="mb-3 bg-white rounded shadow-sm">
+                <input type="number" min=1 max=500 class="form-control" id="points" value="30" onFocus="this.select();" >
+            </div>
+            <div class="mb-3 bg-white rounded shadow-sm">
+                <a class="btn btn-primary btn-md btn-block" id="call_service" href="#" role="button" >Predict &raquo;</a>
+            </div>
+            <hr class="mb-4">
+            <p class="d-block text-center mt-3" id="status"></p>
+            <hr class="mb-4">
+            <small class="d-block text-right mt-3">
+                <a href="https://www.singularitynet.io" target="_blank">User's Guide</a>
+            </small>
+          </div>
+
+          <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+            <br>
+            <h6 class="border-bottom border-gray pb-2 mb-0">Public Address</h6>
+            <div class="mb-3 bg-white rounded shadow-sm">
+              <input type="text" class="form-control" id="public_address" value="0x501e8c58E6C16081c0AbCf80Ce2ABb6b3f91E717" onFocus="this.select();" readonly>
+            </div>
+            <br>
+            <form action="/file-upload"
+              class="dropzone"
+              id="my-dropzone">
+              <div class="dz-message">
+                <i id="dz_icon" class="fa fa-upload fa-3x"></i>
+                <br>
+                <div>Drop your authToken.txt file here.</div>
+              </div>
+            </form>   
+            <br>
+            <h6 class="border-bottom border-gray pb-2 mb-0">Email</h6>
+            <div class="mb-3 bg-white rounded shadow-sm">
+              <input type="email" class="form-control" id="email" value="" onFocus="this.select();">
+            </div>  
+            <h6 class="border-bottom border-gray pb-2 mb-0">Authentication Token</h6>
+            <div class="mb-3 bg-white rounded shadow-sm">
+              <input type="text" class="form-control" id="token" value="" onFocus="this.select();" readonly>
+            </div>
+            <h6 class="border-bottom border-gray pb-2 mb-0">Expiratioin Block</h6>
+            <div class="mb-3 bg-white rounded shadow-sm">
+              <input type="text" class="form-control" id="expiration" value="" onFocus="this.select();" readonly>
+            </div>
+          </div>
+
         </div>
-        <h6 class="border-bottom border-gray pb-2 mb-0">Series Range</h6>
-        <div class="mb-3 bg-white rounded shadow-sm">
-          <input type="text" class="form-control" id="series_A1" value="" onFocus="this.select();" onChange="rangeA1OnChange();">
-        </div>
-        <!-- <h6 class="border-bottom border-gray pb-2 mb-0">Period (STL)</h6>
-        <div class="mb-3 bg-white rounded shadow-sm">
-            <input type="number" min=5 max=300 class="form-control" id="period" value="5" onFocus="this.select();" >
-        </div> -->
-        <h6 class="border-bottom border-gray pb-2 mb-0">Points to Forecast</h6>
-        <div class="mb-3 bg-white rounded shadow-sm">
-            <input type="number" min=1 max=500 class="form-control" id="points" value="30" onFocus="this.select();" >
-        </div>
-        <div class="mb-3 bg-white rounded shadow-sm">
-            <a class="btn btn-primary btn-md btn-block" id="call_service" href="#" role="button">Predict &raquo;</a>
-        </div>
-        <hr class="mb-4">
-        <p class="d-block text-center mt-3" id="status"></p>
-        <hr class="mb-4">
-        <small class="d-block text-right mt-3">
-            <a href="https://www.singularitynet.io" target="_blank">User's Guide</a>
-        </small>
       </div>
     </main>
 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.0/dropzone.min.js"></script>
+
     <script>
-        // REQUIRES SSL (HTTPS)
-        function load_data(url, payload) {
-          $.ajax({
-              url: url,
-              type: 'POST',
-              crossDomain: true,
-              dataType : "json",
-              contentType: "application/json",
-              data: JSON.stringify(payload),
-              success: function(response) {
-                  document.getElementById("status").innerHTML = "Writing Data...";
-                  if (payload["y"] === undefined) { payload["y"] = response.observed }
-                  if (payload["ds"] === undefined) { payload["ds"] = response.forecast_ds }
-                  google.script.run.withSuccessHandler(function(ok){
-                    if(ok){
-                      document.getElementById("status").innerHTML = "Done!";
-                    } else document.getElementById("status").innerHTML = "Fail!";
-                    document.getElementById("call_service").classList.remove('disabled');
-                  }).WriteColumns(payload["ds"], payload["y"], response);
-                  return response;
-              },
-              error: function(error){
-                  document.getElementById("status").innerHTML = "Fail!";
+      // REQUIRES SSL (HTTPS)
+      function load_data(url, payload) {
+        $.ajax({
+            url: url,
+            type: 'POST',
+            crossDomain: true,
+            dataType : "json",
+            contentType: "application/json",
+            data: JSON.stringify(payload),
+            success: function(response) {
+                document.getElementById("status").innerHTML = "Writing Data...";
+                if (payload["y"] === undefined) { payload["y"] = response.observed }
+                if (payload["ds"] === undefined) { payload["ds"] = response.forecast_ds }
+                google.script.run.withSuccessHandler(function(ok){
+                  if(ok){
+                    document.getElementById("status").innerHTML = "Done!";
+                  } else document.getElementById("status").innerHTML = "Fail!";
                   document.getElementById("call_service").classList.remove('disabled');
-              }
-          });
-        };
-        
-        function rangeA1OnChange(value){
+                }).WriteColumns(payload["ds"], payload["y"], response);
+                return response;
+            },
+            error: function(error){
+                document.getElementById("status").innerHTML = "Fail!";
+                document.getElementById("call_service").classList.remove('disabled');
+            }
+        });
+      };
+      
+      function rangeA1OnChange(value){
+        let dates_range = document.getElementById("dates_A1").value;
+        let series_range = document.getElementById("series_A1").value;
+        google.script.run.getAndSetRanges(dates_range, series_range);
+      }
+      
+      $('#call_service').click(function() {
+          document.getElementById("status").innerHTML = "";
+          let token = document.getElementById("token").value;
+          let expiration = document.getElementById("expiration").value;
+          let email = document.getElementById("email").value;
+          if(token === "" || expiration === "" || email === "") {
+            document.getElementById("status").innerHTML = "Email, AuthToken and Expiration required!";
+            return;
+          }
+          document.getElementById("call_service").classList.add('disabled');
+          document.getElementById("status").innerHTML = "Processing...";
           let dates_range = document.getElementById("dates_A1").value;
           let series_range = document.getElementById("series_A1").value;
-          google.script.run.getAndSetRanges(dates_range, series_range);
-        }
-        
-        $('#call_service').click(function() {
-            document.getElementById("status").innerHTML = "";
-            document.getElementById("call_service").classList.add('disabled');
-            document.getElementById("status").innerHTML = "Processing...";
-            let dates_range = document.getElementById("dates_A1").value;
-            let series_range = document.getElementById("series_A1").value;
-            google.script.run.withSuccessHandler(function(data){
-                if(data && data.length === 2){
-                  if(data[0].length === data[1].length && data[0].length >= 100 && data[0].length <= 3000){
-                    var payload = {
-                    "ds": data[0],
-                    "y": data[1],
-                    // "period": document.getElementById("period").value,
-                    "points": document.getElementById("points").value
-                    };
-                    let response = load_data('https://bh.singularitynet.io:7089/Forecast/forecast', payload);
-                  }
-                  else {
-                    document.getElementById("status").innerHTML = "Invalid length! Both must have same length (between 100 and 3000).";
-                    document.getElementById("call_service").classList.remove('disabled');
-                  }
-                } else {
-                    document.getElementById("dates_A1").value = "";
-                    document.getElementById("series_A1").value = "";
-                    document.getElementById("status").innerHTML = "Select 2 columns (Date and Series).";
-                    document.getElementById("call_service").classList.remove('disabled');
+          google.script.run.withSuccessHandler(function(data){
+              if(data && data.length === 2){
+                if(data[0].length === data[1].length && data[0].length >= 100 && data[0].length <= 3000){
+                  var payload = {
+                  "ds": data[0],
+                  "y": data[1],
+                  // "period": document.getElementById("period").value,
+                  "points": document.getElementById("points").value,
+                  "email": document.getElementById("email").value,
+                  "token": document.getElementById("token").value,
+                  "expiration": document.getElementById("expiration").value,
+                  };
+                  let response = load_data('https://bh.singularitynet.io:7089/Forecast/forecast', payload);
                 }
-            }).getSelection(dates_range, series_range);
-            return;  
-        });
-      </script>
+                else {
+                  document.getElementById("status").innerHTML = "Invalid length! Both must have same length (between 100 and 3000).";
+                  document.getElementById("call_service").classList.remove('disabled');
+                }
+              } else {
+                  document.getElementById("dates_A1").value = "";
+                  document.getElementById("series_A1").value = "";
+                  document.getElementById("status").innerHTML = "Select 2 columns (Date and Series).";
+                  document.getElementById("call_service").classList.remove('disabled');
+              }
+          }).getSelection(dates_range, series_range);
+          return;  
+      });
+    </script>
+
+    <script>
+      Dropzone.autoDiscover = false;
+      $(function() {
+        let dz_options = {
+            addRemoveLinks: true,
+            maxFiles: 1,
+            maxFilesize: 1, // Mb
+            acceptedFiles: ".txt",
+            accept: function(file, done) {
+              var reader = new FileReader();
+              reader.addEventListener("loadend", function(event) {
+                document.getElementById("status").innerHTML = "";
+                let content = JSON.parse(event.target.result);
+                if(content["tokeToMakeFreeCall"] !== undefined && content["tokenExpirationBlock"] !== undefined) {
+                  $("#token").val(content["tokeToMakeFreeCall"]);
+                  $("#expiration").val(content["tokenExpirationBlock"]);
+                  $("#dz_icon").removeClass("fa-upload");
+                  $("#dz_icon").addClass("fa-check-circle");
+                  $('.dz-progress').hide();
+                } else done("Invalid File!");
+              });
+              reader.readAsText(file);
+            },
+            init: function() {
+              this.on('success', function(file, data) { });
+              this.on("addedfile", function() {
+                if(this.files[1]!=null) {
+                  this.removeFile(this.files[0]);
+                }
+              });
+              this.on('drop', function(file) { });
+              this.on('complete', function(file) { });
+              this.on('error', function(file) { });
+              this.on('removedfile', function(file) {
+                $("#token").val("");
+                $("#expiration").val("");
+                $("#dz_icon").addClass("fa-upload");
+                $("#dz_icon").removeClass("fa-check-circle");
+              });
+          }
+        };
+        var myDropzone = new Dropzone("#my-dropzone", dz_options);
+      });
+    </script>
 
   </body>
 
