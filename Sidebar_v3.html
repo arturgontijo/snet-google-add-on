@@ -71,7 +71,7 @@
                 </li>
                 <li class="list-group-item">
                   Copy & Paste this Public Address there:
-                  <input type="text" class="form-control" id="public_address" value="0x501e8c58E6C16081c0AbCf80Ce2ABb6b3f91E717" onFocus="this.select();" readonly>
+                  <input type="text" class="form-control" id="public_address" value="0xb83F5d89Fad166569f28F502f4733a91AA1b3Fc4" onFocus="this.select();" readonly>
                 </li>
                 <li class="list-group-item">
                   Upload the downloaded authToken.txt file here:
@@ -161,7 +161,7 @@
                   "token": token,
                   "expiration": expiration
                   };
-                  let response = load_data('https://bh.singularitynet.io:7089/Forecast/forecast', payload);
+                  let response = load_data('https://bh.singularitynet.io:7041/Forecast/forecast', payload);
                 }
                 else {
                   document.getElementById("status").innerHTML = "Invalid length! Both must have same length (between 100 and 3000).";
@@ -182,7 +182,7 @@
         let dz_options = {
             addRemoveLinks: true,
             maxFiles: 1,
-            maxFilesize: 1, // Mb
+            maxFilesize: 1,
             acceptedFiles: ".txt",
             accept: function(file, done) {
               var reader = new FileReader();
